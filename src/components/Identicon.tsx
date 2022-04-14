@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useEthers } from "@usedapp/core";
 import Jazzicon from "@metamask/jazzicon";
 import styled from "@emotion/styled";
+import { useMetaMask } from 'metamask-react';
 
 const StyledIdenticon = styled.div`
   height: 1rem;
@@ -12,7 +12,7 @@ const StyledIdenticon = styled.div`
 
 export default function Identicon() {
   const ref = useRef<HTMLDivElement>();
-  const { account } = useEthers();
+  const { account } = useMetaMask();
 
   useEffect(() => {
     if (account && ref.current) {

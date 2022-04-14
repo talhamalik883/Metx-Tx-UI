@@ -14,8 +14,9 @@ import { utils } from 'ethers'
 import Biconomy from "@biconomy/mexa";
 import Web3 from 'web3'
 import { useConnectedMetaMask  } from 'metamask-react';
-import { ToastContainer, toast } from 'react-toastify'
+import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
+import { useMetaMask } from 'metamask-react';
 
 let sigUtil = require("eth-sig-util");
 
@@ -71,7 +72,7 @@ export default function MetaTrx() {
         if (!ethereum || web3){
           return
         }
-        if ( chainId != '0x2a' ){
+        if ( chainId !== '0x2a' ){
           toast('Please Install MetaMask and Switch to Kovan Network')
 
           return
@@ -94,7 +95,7 @@ export default function MetaTrx() {
         });    
     }
       init()
-    
+    // eslint-disable-next-line
     }, [])
   const OnSubmit = async (values: any) =>{
     console.log('web3 ', web3)
@@ -111,7 +112,7 @@ export default function MetaTrx() {
       }
       setButtonText('Approving....')
       const allowance = await erc20Instance.methods.allowance(account, contractAddress).call()
-      if ( allowance == 0 ){
+      if ( allowance === 0 ){
         console.log('You Have Approved the tokens')
         toast('Approving Tokens')
         const erc20Hash = await erc20Instance.methods.approve(contractAddress, approveMaxTokens).send({from: account})
@@ -132,7 +133,7 @@ export default function MetaTrx() {
         let userAddress = account;
         let claimTrxCount = await contract.methods.claimableCount().call({from: account})
         console.log('Claim Trx Count ', claimTrxCount)
-        if ( claimTrxCount == 0){
+        if ( claimTrxCount === 0){
           toast('You have no deposits to be claimed')
           return
         }
@@ -348,7 +349,7 @@ export default function MetaTrx() {
           onChange={(e)=>{
             const selectOption = e.target.value
             console.log(selectOption);
-            if (selectOption !=""){
+            if (selectOption !==""){
               setButtonText("Approve")
               tokenAddress = (e.target.value)
             }else{
@@ -375,7 +376,7 @@ export default function MetaTrx() {
           onChange={(e)=>{
             const selectOption = e.target.value
             console.log(selectOption);
-            if (selectOption !=""){
+            if (selectOption !==""){
               setButtonText("Approve")
               expireTime = parseInt(e.target.value)
             }else{

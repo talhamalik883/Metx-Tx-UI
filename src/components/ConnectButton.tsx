@@ -1,7 +1,7 @@
 import { Button, Box, Text } from "@chakra-ui/react";
 import Identicon from "./Identicon";
 import MetaTrx from "./MetaTrx";
-import { ToastContainer, toast } from 'react-toastify'
+import { ToastContainer } from 'react-toastify'
 
 import { useMetaMask } from 'metamask-react';
 
