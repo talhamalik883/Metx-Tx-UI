@@ -14,7 +14,11 @@ import { utils } from 'ethers'
 import Biconomy from "@biconomy/mexa";
 import Web3 from 'web3'
 import { useConnectedMetaMask  } from 'metamask-react';
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css';
+
 let sigUtil = require("eth-sig-util");
+
 
 let web3, contract, biconomy, expireTime = 0, receipient, buttonState = false;
 const zeroAddress = '0x0000000000000000000000000000000000000000'
@@ -63,7 +67,8 @@ export default function MetaTrx() {
           return
         }
         if ( chainId != '0x2a' ){
-          alert('Please Install MetaMask and Switch to Kovan Network')
+          toast('Please Install MetaMask and Switch to Kovan Network')
+
           return
         }
         console.log('Initializing web3')
@@ -97,12 +102,15 @@ export default function MetaTrx() {
       const balance = await erc20Instance.methods.balanceOf(account).call()
       if ( balance < value ){
         setButtonText(' InSufficient Token Balance to Make transaction')
+        toast(' InSufficient Token Balance to Make transaction ')
       }
       setButtonText('Approving....')
       const allowance = await erc20Instance.methods.allowance(account, contractAddress).call()
       if ( allowance == 0 ){
         console.log('You Have Approved the tokens')
+        toast('Please Approve Tokens')
         const erc20Hash = await erc20Instance.methods.approve(contractAddress, approveMaxTokens).send({from: account})
+        toast('Tokens Approve Successfully')
         console.log(erc20Hash);          
       }
       setButtonText('Deposit Tokens')
@@ -110,12 +118,18 @@ export default function MetaTrx() {
     const txHash = await contract.methods.deposit(receipient, tokenAddress, value, expireTime).send({from: account, value: ethValue})
     console.log(txHash)
     setButtonText('Deposit Is Made SuccessFully')
+    toast('Deposit Is Made SuccessFully')
   }
 
   const onClaim = async event => {
-    debugger
         console.log("Sending meta transaction");
         let userAddress = account;
+        let claimTrxCount = await contract.methods.claimableCount().call({from: account})
+        console.log('Claim Trx Count ', claimTrxCount)
+        if ( claimTrxCount === 0){
+          toast('You have no deposits to be claimed')
+          return
+        }
         let nonce = await contract.methods.getNonce(userAddress).call();
         let functionSignature = contract.methods.claim().encodeABI();
         let message:any = {};
@@ -176,14 +190,15 @@ export default function MetaTrx() {
         let gasPrice = await web3.eth.getGasPrice();
         console.log(gasLimit);
         console.log(gasPrice);
-        let hash = await contract.methods
+        let txInfo = await contract.methods
           .executeMetaTransaction(userAddress, functionData, r, s, v)
           .send({
             from: userAddress,
             gasPrice: web3.utils.toHex(gasPrice),
             gasLimit: web3.utils.toHex(gasLimit)
           });
-        console.log(`Transaction hash is ${hash}`);
+        console.log(txInfo.hash);    
+        toast('Transaction is made successfully')
       } catch (error) {
         console.log(error);
       }

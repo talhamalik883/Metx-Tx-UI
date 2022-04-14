@@ -1,6 +1,6 @@
 {
   "timeLock":{
-    "address": "0x533a519569949f938ee02d9f5dd6104a3fabf4e8",
+    "address": "0x0ce0e2886aD97c8E4A22586e70B77A7777c8374C",
     "abi": [
       {
         "anonymous": false,
@@ -36,6 +36,19 @@
         "name": "claim",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "claimableCount",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
         "type": "function"
       },
       {

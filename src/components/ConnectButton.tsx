@@ -1,6 +1,8 @@
 import { Button, Box, Text } from "@chakra-ui/react";
 import Identicon from "./Identicon";
 import MetaTrx from "./MetaTrx";
+import { ToastContainer, toast } from 'react-toastify'
+
 import { useMetaMask } from 'metamask-react';
 
 type Props = {
@@ -30,7 +32,6 @@ export default function ConnectButton({ handleOpenModal }: Props) {
     >
       <Box px="3">
         <Text color="white" fontSize="md">
-        {/* etherBalance && parseFloat(formatEther(etherBalance)).toFixed(3) */}
           {} Address
         </Text>
       </Box>
@@ -58,6 +59,9 @@ export default function ConnectButton({ handleOpenModal }: Props) {
         </Text>
         <Identicon />
       </Button>
+      </Box>
+      <Box px="3" marginLeft="auto" marginBottom="20">
+      <ToastContainer/>
       </Box>
       <MetaTrx/>
     </Box>
