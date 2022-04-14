@@ -20,7 +20,7 @@ import 'react-toastify/dist/ReactToastify.css';
 let sigUtil = require("eth-sig-util");
 
 
-let web3, contract, biconomy, expireTime = 0, receipient, buttonState = false;
+let web3, contract, biconomy, expireTime = 0, receipient;
 const zeroAddress = '0x0000000000000000000000000000000000000000'
 let tokenAddress = zeroAddress
 
@@ -54,13 +54,18 @@ export default function MetaTrx() {
   const {
     handleSubmit,
     register,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm();
 
   const [amount, setAmount] = useState('0')
   // const [tokenAddress, setTokenAddress] = useState(zeroAddress)
   const [ buttonText, setButtonText ] = useState("Deposit")
+  const [buttonState, setbuttonState] = useState(false)
+  const [isClaiming, setClaimState] = useState(false)
+
   useEffect(() => {
+    console.log('isSubmitting ', isSubmitting)
     async function init() {    
       console.log('chainId ', chainId)
         if (!ethereum || web3){
@@ -92,7 +97,6 @@ export default function MetaTrx() {
     
     }, [])
   const OnSubmit = async (values: any) =>{
-    debugger
     console.log('web3 ', web3)
     const value = utils.parseEther(amount.toString()).toString()
     const ethValue = tokenAddress === zeroAddress ? value : 0
@@ -102,23 +106,25 @@ export default function MetaTrx() {
       const balance = await erc20Instance.methods.balanceOf(account).call()
       if ( balance < value ){
         setButtonText(' InSufficient Token Balance to Make transaction')
-        toast(' InSufficient Token Balance to Make transaction ')
+        toast(' InSufficient Token Balance to approve ')
+        return
       }
       setButtonText('Approving....')
       const allowance = await erc20Instance.methods.allowance(account, contractAddress).call()
       if ( allowance == 0 ){
         console.log('You Have Approved the tokens')
-        toast('Please Approve Tokens')
+        toast('Approving Tokens')
         const erc20Hash = await erc20Instance.methods.approve(contractAddress, approveMaxTokens).send({from: account})
         toast('Tokens Approve Successfully')
         console.log(erc20Hash);          
       }
-      setButtonText('Deposit Tokens')
+      setButtonText('Deposit Tokens');
     }
     const txHash = await contract.methods.deposit(receipient, tokenAddress, value, expireTime).send({from: account, value: ethValue})
     console.log(txHash)
     setButtonText('Deposit Is Made SuccessFully')
     toast('Deposit Is Made SuccessFully')
+    reset();
   }
 
   const onClaim = async event => {
@@ -126,7 +132,7 @@ export default function MetaTrx() {
         let userAddress = account;
         let claimTrxCount = await contract.methods.claimableCount().call({from: account})
         console.log('Claim Trx Count ', claimTrxCount)
-        if ( claimTrxCount === 0){
+        if ( claimTrxCount == 0){
           toast('You have no deposits to be claimed')
           return
         }
@@ -197,7 +203,7 @@ export default function MetaTrx() {
             gasPrice: web3.utils.toHex(gasPrice),
             gasLimit: web3.utils.toHex(gasLimit)
           });
-        console.log(txInfo.hash);    
+        console.log(txInfo.hash);
         toast('Transaction is made successfully')
       } catch (error) {
         console.log(error);
@@ -250,14 +256,15 @@ export default function MetaTrx() {
           fontWeight="medium"
           borderRadius="xl"
           border="1px solid transparent"
-          disabled={buttonState}
           display={"block"}
           margin={"auto"}
           minWidth={"200px"}
-          isLoading={isSubmitting}
-          onClick= {(e)=>{
+          isLoading={isClaiming}
+          onClick= {async (e)=>{
             console.log('Button is Clicked')
-            onClaim(e)
+            setClaimState(true)
+            await onClaim(e)
+            setClaimState(false)
           }}
           _hover={{
             borderColor: "red.700",
@@ -274,7 +281,7 @@ export default function MetaTrx() {
       <Box marginBottom={3} fontSize="3xl" textAlign={"center"}>
       Perform Deposit{" "} 
         </Box>
-      <form onSubmit={handleSubmit(OnSubmit)}>
+      <form onSubmit={handleSubmit(OnSubmit)} autoComplete="off">
         <FormControl isInvalid={errors.walletAddress} marginBottom="4">
           <FormLabel htmlFor="walletAddress">Wallet Address</FormLabel>
           <Input
@@ -300,10 +307,16 @@ export default function MetaTrx() {
             })}
             onChange={(e) => {
               if (!utils.isAddress(e.target.value)){
-                buttonState = true
-                errors.receipient = 'Invalid address'
-              }else
-              receipient = (e.target.value)
+                setbuttonState(true) 
+                console.log(errors);
+                
+                errors['receipient'] = 'Invalid address'
+              }else {
+                receipient = (e.target.value)
+                errors['receipient'] = ""
+                setbuttonState(false) 
+
+              }
             }}
           />
          <FormErrorMessage>
