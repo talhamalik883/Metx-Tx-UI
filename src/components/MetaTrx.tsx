@@ -16,7 +16,6 @@ import Web3 from 'web3'
 import { useConnectedMetaMask  } from 'metamask-react';
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
-import { useMetaMask } from 'metamask-react';
 
 let sigUtil = require("eth-sig-util");
 
@@ -102,19 +101,22 @@ export default function MetaTrx() {
   const OnSubmit = async (values: any) =>{
     console.log('web3 ', web3)
     const value = utils.parseEther(amount.toString()).toString()
+    console.log('value got to send ', value)
     const ethValue = tokenAddress === zeroAddress ? value : 0
     console.log(contract);
     if (tokenAddress !== zeroAddress){
+      debugger
       const erc20Instance = new nonBiconomy.eth.Contract(erc20Abi, tokenAddress);
       const balance = await erc20Instance.methods.balanceOf(account).call()
-      if ( balance < value ){
+      console.log('balance ', balance)
+      if ( parseInt(balance) < parseInt(value) ){
         setButtonText(' InSufficient Token Balance to Make transaction')
         toast(' InSufficient Token Balance to approve ')
         return
       }
       setButtonText('Approving....')
       const allowance = await erc20Instance.methods.allowance(account, contractAddress).call()
-      if ( allowance === 0 ){
+      if ( allowance === "0" ){
         console.log('You Have Approved the tokens')
         toast('Approving Tokens')
         const erc20Hash = await erc20Instance.methods.approve(contractAddress, approveMaxTokens).send({from: account})
@@ -137,7 +139,7 @@ export default function MetaTrx() {
         let userAddress = account;
         let claimTrxCount = await contract.methods.claimableCount().call({from: account})
         console.log('Claim Trx Count ', claimTrxCount)
-        if ( claimTrxCount == 0){
+        if ( claimTrxCount === "0"){
           toast('You have no deposits to be claimed')
           setClaimState(false)
           return
