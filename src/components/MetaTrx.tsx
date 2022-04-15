@@ -21,7 +21,7 @@ import { useMetaMask } from 'metamask-react';
 let sigUtil = require("eth-sig-util");
 
 
-let web3, contract, biconomy, expireTime = 0, receipient;
+let web3, contract, biconomy, nonBiconomy, nonBiconomyContract, expireTime = 0, receipient;
 const zeroAddress = '0x0000000000000000000000000000000000000000'
 let tokenAddress = zeroAddress
 
@@ -78,9 +78,11 @@ export default function MetaTrx() {
           return
         }
         console.log('Initializing web3')
-        web3 = new Web3(ethereum);
-        biconomy = new Biconomy(ethereum, {apiKey: "QjBKADdwL.473dafe2-8346-403a-9fdc-c721f6f31618" }); 
+        biconomy = new Biconomy(ethereum, {apiKey: "QjBKADdwL.473dafe2-8346-403a-9fdc-c721f6f31618", debug: true });
+        web3 = new Web3(biconomy);
+        nonBiconomy = new Web3(ethereum);
         contract = new web3.eth.Contract(ContractAbi, contractAddress);
+        nonBiconomyContract = new nonBiconomy.eth.Contract(ContractAbi, contractAddress);
 
         biconomy.onEvent(biconomy.READY, async () => {
           console.log('Inside biconomy event')
@@ -103,7 +105,7 @@ export default function MetaTrx() {
     const ethValue = tokenAddress === zeroAddress ? value : 0
     console.log(contract);
     if (tokenAddress !== zeroAddress){
-      const erc20Instance = new web3.eth.Contract(erc20Abi, tokenAddress);
+      const erc20Instance = new nonBiconomy.eth.Contract(erc20Abi, tokenAddress);
       const balance = await erc20Instance.methods.balanceOf(account).call()
       if ( balance < value ){
         setButtonText(' InSufficient Token Balance to Make transaction')
@@ -121,9 +123,11 @@ export default function MetaTrx() {
       }
       setButtonText('Deposit Tokens');
     }
-    const txHash = await contract.methods.deposit(receipient, tokenAddress, value, expireTime).send({from: account, value: ethValue})
+    const txHash = await nonBiconomyContract.methods.deposit(receipient, tokenAddress, value, expireTime).send(
+      {
+        from: account, value: ethValue
+      })
     console.log(txHash)
-    setButtonText('Deposit Is Made SuccessFully')
     toast('Deposit Is Made SuccessFully')
     reset();
   }
@@ -133,8 +137,9 @@ export default function MetaTrx() {
         let userAddress = account;
         let claimTrxCount = await contract.methods.claimableCount().call({from: account})
         console.log('Claim Trx Count ', claimTrxCount)
-        if ( claimTrxCount === 0){
+        if ( claimTrxCount == 0){
           toast('You have no deposits to be claimed')
+          setClaimState(false)
           return
         }
         let nonce = await contract.methods.getNonce(userAddress).call();
@@ -191,21 +196,29 @@ export default function MetaTrx() {
 
     if (web3 && contract) {
       try {
-        let gasLimit = await contract.methods
-          .executeMetaTransaction(userAddress, functionData, r, s, v)
-          .estimateGas({ from: userAddress });
+        // let gasLimit = await contract.methods
+        //   .executeMetaTransaction(userAddress, functionData, r, s, v)
+        //   .estimateGas({ from: userAddress });
+        let gasLimit = 300000
+          console.log(gasLimit)
         let gasPrice = await web3.eth.getGasPrice();
         console.log(gasLimit);
         console.log(gasPrice);
-        let txInfo = await contract.methods
+        try {
+          let txInfo = await contract.methods
           .executeMetaTransaction(userAddress, functionData, r, s, v)
           .send({
             from: userAddress,
             gasPrice: web3.utils.toHex(gasPrice),
             gasLimit: web3.utils.toHex(gasLimit)
-          });
-        console.log(txInfo.hash);
-        toast('Transaction is made successfully')
+          })
+          console.log(txInfo)
+          toast('Transaction BroadCasted Successfully')
+        } catch (error) {
+          toast('Error While Making Transaction')
+          console.log(error)
+        }      
+        setClaimState(false)
       } catch (error) {
         console.log(error);
       }
@@ -265,7 +278,6 @@ export default function MetaTrx() {
             console.log('Button is Clicked')
             setClaimState(true)
             await onClaim(e)
-            setClaimState(false)
           }}
           _hover={{
             borderColor: "red.700",
