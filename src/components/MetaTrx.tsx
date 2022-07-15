@@ -16,7 +16,7 @@ import Web3 from 'web3'
 import { useConnectedMetaMask  } from 'metamask-react';
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
-
+import SmartAccount from '@biconomy/smart-account'
 let sigUtil = require("eth-sig-util");
 
 
@@ -58,46 +58,121 @@ export default function MetaTrx() {
     formState: { errors, isSubmitting },
   } = useForm();
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  enum ChainId {
+    // Ethereum
+    MAINNET = 1,
+    ROPSTEN = 3,
+    RINKEBY = 4,
+    GOERLI = 5,
+    KOVAN = 42
+  }
+
+const wallet = new SmartAccount({
+    owner: '0x4281d6888D7a3A6736B0F596823810ffBd7D4808',
+    activeNetworkId: ChainId.RINKEBY,
+    supportedNetworksIds: [ChainId.MAINNET, ChainId.RINKEBY]
+  })
+
+  wallet.ethersAdapter(ChainId.RINKEBY).getTransaction('0x3dbc9da5b081a93658d4bf2f85bce2e74332b1806b287248b318c6da13c27994')
+  .then(res=>{
+    console.log('Tx Details are ', res);
+  })
+
+  wallet.ethersAdapter(ChainId.MAINNET).getBalance('0x4281d6888D7a3A6736B0F596823810ffBd7D4808')
+  .then(res=>{
+    console.log('Balance is ', res);
+  })
+
+
+  wallet.smartAccount(ChainId.RINKEBY).getOwner()
+  .then(res=>{
+    console.log('Chain id is ', res);
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // console.log('wallet info ', wallet.EthAdapter(4).getTransaction('0x3dbc9da5b081a93658d4bf2f85bce2e74332b1806b287248b318c6da13c27994').then()
+  // const instace = wallet.getEthAdapter(4)
+  // const instace2 = wallet.getEthAdapter(1)
+  // wallet.getTransaction('0x3dbc9da5b081a93658d4bf2f85bce2e74332b1806b287248b318c6da13c27994').then(res=>{
+  //   console.log('res ====> ', res);
+  // })
+  // instace.getTransaction('0x3dbc9da5b081a93658d4bf2f85bce2e74332b1806b287248b318c6da13c27994').then(res=>{
+  //   console.log('res ====> ', res);
+  // })
+  // console.log('address ', wallet.getSmartWalletContractAddress(4));
+  
+  
   const [amount, setAmount] = useState('0')
   // const [tokenAddress, setTokenAddress] = useState(zeroAddress)
   const [ buttonText, setButtonText ] = useState("Deposit")
   const [buttonState, setbuttonState] = useState(false)
   const [isClaiming, setClaimState] = useState(false)
 
-  useEffect(() => {
-    console.log('isSubmitting ', isSubmitting)
-    async function init() {    
-      console.log('chainId ', chainId)
-        if (!ethereum || web3){
-          return
-        }
-        if ( chainId !== '0x2a' ){
-          toast('Please Install MetaMask and Switch to Kovan Network')
+  // useEffect(() => {
+  //   console.log('isSubmitting ', isSubmitting)
+  //   async function init() {    
+  //     console.log('chainId ', chainId)
+  //       if (!ethereum || web3){
+  //         return
+  //       }
+  //       if ( chainId !== '0x2a' ){
+  //         toast('Please Install MetaMask and Switch to Kovan Network')
 
-          return
-        }
-        console.log('Initializing web3')
-        biconomy = new Biconomy(ethereum, {apiKey: "QjBKADdwL.473dafe2-8346-403a-9fdc-c721f6f31618", debug: true });
-        web3 = new Web3(biconomy);
-        nonBiconomy = new Web3(ethereum);
-        contract = new web3.eth.Contract(ContractAbi, contractAddress);
-        nonBiconomyContract = new nonBiconomy.eth.Contract(ContractAbi, contractAddress);
+  //         return
+  //       }
+  //       console.log('Initializing web3')
+  //       biconomy = new Biconomy(ethereum, {apiKey: "QjBKADdwL.473dafe2-8346-403a-9fdc-c721f6f31618", debug: true });
+  //       web3 = new Web3(biconomy);
+  //       nonBiconomy = new Web3(ethereum);
+  //       contract = new web3.eth.Contract(ContractAbi, contractAddress);
+  //       nonBiconomyContract = new nonBiconomy.eth.Contract(ContractAbi, contractAddress);
 
-        biconomy.onEvent(biconomy.READY, async () => {
-          console.log('Inside biconomy event')
-          // Initialize your dapp here like getting user accounts etc
-          const provider = ethereum;
-          await provider.enable();
-          console.log(web3)
-          console.log('Contract is Initialized')
-        }).onEvent(biconomy.ERROR, (error, message) => {
-          // Handle error while initializing mexa
-          console.log(error)
-        });    
-    }
-      init()
-    // eslint-disable-next-line
-    }, [])
+  //       biconomy.onEvent(biconomy.READY, async () => {
+  //         console.log('Inside biconomy event')
+  //         // Initialize your dapp here like getting user accounts etc
+  //         const provider = ethereum;
+  //         await provider.enable();
+  //         console.log(web3)
+  //         console.log('Contract is Initialized')
+  //       }).onEvent(biconomy.ERROR, (error, message) => {
+  //         // Handle error while initializing mexa
+  //         console.log(error)
+  //       });    
+  //   }
+  //     init()
+  //   // eslint-disable-next-line
+  //   }, [])
   const OnSubmit = async (values: any) =>{
     console.log('web3 ', web3)
     const value = utils.parseEther(amount.toString()).toString()
@@ -172,6 +247,7 @@ export default function MetaTrx() {
             params: [userAddress, dataToSign]
           },
           function(error, response) {
+            debugger
             console.info(`User signature is ${response.result}`);
             if (error || (response && response.error)) {
               // showErrorMessage("Could not get user signature");
@@ -195,7 +271,7 @@ export default function MetaTrx() {
 
   };
   const sendTransaction = async (userAddress, functionData, r, s, v) => {
-
+    debugger
     if (web3 && contract) {
       try {
         // let gasLimit = await contract.methods
