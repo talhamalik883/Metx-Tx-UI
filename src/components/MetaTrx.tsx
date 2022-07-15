@@ -11,7 +11,7 @@ import contractsInfo from '../utils/abi.json'
 import { useState, useEffect } from 'react'
 import { useForm } from "react-hook-form";
 import { utils } from 'ethers'
-import Biconomy from "@biconomy/mexa";
+import { Biconomy } from "@biconomy/mexa";
 import Web3 from 'web3'
 import { useConnectedMetaMask  } from 'metamask-react';
 import { toast } from 'react-toastify'

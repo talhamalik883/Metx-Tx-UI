@@ -4,7 +4,7 @@
   "author": "Jacob E. Dawson",
   "private": true,
   "dependencies": {
-    "@biconomy/mexa": "^1.5.4",
+    "@biconomy/mexa": "2.0.32",
     "@chakra-ui/icons": "^1.0.14",
     "@chakra-ui/react": "^1.6.5",
     "@emotion/react": "^11.4.0",
